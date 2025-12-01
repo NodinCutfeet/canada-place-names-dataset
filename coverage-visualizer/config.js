@@ -16,31 +16,31 @@ const CONFIG = {
     zoom: 4,
     minZoom: 4,
     maxZoom: 17,
-    maxBounds: [[30, -150], [90, -40]], // SouthWest, NorthEast
+    maxBounds: [[30, -150], [90, -40]],
 
-    // Category Settings (Colors, Radii)
+    // Category Settings
+    // Key 'indig' MUST match the CSS classes (.bg-indig, .cluster-indig)
     categories: {
-        fn:    { color: '#007aff', radius: 7.0, label: 'First Nation' }, // Blue
-        micro: { color: '#ff3b30', radius: 6.0, label: 'MicroList' },    // Red
-        short: { color: '#ff9500', radius: 5.0, label: 'ShortList' },    // Orange
-        full:  { color: '#af52de', radius: 4.0, label: 'FullList' }      // Purple
+        indig: { color: '#007aff', radius: 7.0, label: 'Indigenous' },   
+        micro: { color: '#ff3b30', radius: 6.0, label: 'MicroList' },   
+        short: { color: '#ff9500', radius: 5.0, label: 'ShortList' },   
+        full:  { color: '#af52de', radius: 4.0, label: 'FullList' }     
     },
 
-    // Map Pane Z-Indices (Layering Priority)
+    // Map Pane Z-Indices
     zIndices: {
-        fn: 630,
+        indig: 630,
         full: 620,
         short: 610,
         micro: 600
     }
 };
 
-// Global State Object
 const STATE = {
     map: null,
     data: [],
-    lookup: new Map(), // Fast ID lookup
-    layers: {},        // Leaflet LayerGroups
-    tiles: {},         // Base Maps
-    stats: { fn: 0, micro: 0, short: 0, full: 0 }
+    lookup: new Map(),
+    layers: {},       
+    tiles: {},         
+    stats: { indig: 0, micro: 0, short: 0, full: 0 }
 };

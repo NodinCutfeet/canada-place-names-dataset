@@ -22,10 +22,9 @@
     <!-- Center Crosshair -->
     <div class="crosshair"></div>
 
-    <!-- TOP UI: Coordinates, Search, Legend, Layers -->
+    <!-- TOP UI -->
     <div class="ui-container top-center">
         
-        <!-- Coordinates & Zoom -->
         <div class="ui-card coords-card">
             <span class="coord-label">LAT</span> <span id="map-lat">00.0000</span>
             <span class="divider">|</span>
@@ -34,7 +33,6 @@
             <span class="coord-label">Z</span> <span id="map-zoom">0</span>
         </div>
 
-        <!-- Search Bar & Legend -->
         <div class="ui-card center-card">
             <div class="search-wrapper">
                 <div class="search-input-container">
@@ -49,11 +47,12 @@
             <div class="legend-wrapper">
                 <div id="legend-hint" class="legend-hint">Click to show/hide</div>
                 
-                <!-- Legend items generated dynamically could be an improvement, but static is fine for now -->
-                <div class="legend-item" id="legend-fn">
-                    <span class="shape-indicator bg-fn"></span>
-                    <span>First Nation (<span id="count-fn">0</span>)</span>
+                <!-- Fixed IDs to match 'indig' category -->
+                <div class="legend-item" id="legend-indig">
+                    <span class="shape-indicator bg-indig"></span>
+                    <span>Indigenous (<span id="count-indig">0</span>)</span>
                 </div>
+                
                 <div class="legend-item" id="legend-micro">
                     <span class="shape-indicator bg-micro"></span>
                     <span>MicroList (<span id="count-micro">0</span>)</span>
@@ -69,11 +68,9 @@
             </div>
         </div>
 
-        <!-- Layer Switcher -->
         <div class="ui-card layer-card" id="layerBtn">
             <span id="currentLayerName">Satellite</span>
             <div class="css-chevron down"></div>
-            
             <div class="layer-dropdown" id="layerMenu">
                 <div class="layer-option active" data-layer="satellite">Satellite Hybrid</div>
                 <div class="layer-option" data-layer="osm">Street Map</div>
@@ -83,7 +80,7 @@
         </div>
     </div>
 
-    <!-- BOTTOM CENTER: Generator Menu -->
+    <!-- BOTTOM CENTER -->
     <div class="bottom-center-menu" id="generatorMenu">
         <div class="menu-header" id="genHeader">
             <span class="header-title">💾 Generate JSON</span>
@@ -99,10 +96,8 @@
             <div class="gen-grid">
                 <button id="btn-places-full" class="btn-gen btn-full">Full List</button>
                 <button id="btn-names-full" class="btn-gen btn-full">Full List</button>
-                
                 <button id="btn-places-short" class="btn-gen btn-short">Short List</button>
                 <button id="btn-names-short" class="btn-gen btn-short">Short List</button>
-
                 <button id="btn-places-micro" class="btn-gen btn-micro">Micro List</button>
                 <button id="btn-names-micro" class="btn-gen btn-micro">Micro List</button>
             </div>
@@ -111,14 +106,13 @@
 
     <div id="map"></div>
 
-    <!-- SCRIPTS: Order matters -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     
     <script src="data.js"></script>
-    <script src="config.js"></script>    <!-- NEW: Constants & State -->
-    <script src="generator.js"></script> <!-- Exports data -->
-    <script src="map.js"></script>       <!-- Map Logic -->
-    <script src="logic.js"></script>     <!-- App Logic -->
+    <script src="config.js"></script> 
+    <script src="generator.js"></script>
+    <script src="map.js"></script>       
+    <script src="logic.js"></script>     
 </body>
 </html>

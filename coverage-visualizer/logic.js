@@ -9,8 +9,9 @@ const $ = (id) => document.getElementById(id);
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof MASTER_DATA === 'undefined') return alert("Missing data.js");
     
-    // 1. Pre-process data for search (Performance Optimization)
-    STATE.data = MASTER_DATA.map(place => {
+    // 1. Pre-process data: Add search normalization AND a runtime ID for collisions
+    STATE.data = MASTER_DATA.map((place, index) => {
+        place._id = index; // Unique Runtime ID to handle name collisions
         place._searchKey = SearchUtils.normalize(place.name);
         return place;
     });
@@ -22,47 +23,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const SearchUtils = {
-    /**
-     * Normalizes a string for "Fuzzy" matching.
-     * Rules: Lowercase, flatten accents, dashes->spaces, remove ignored punctuation.
-     */
     normalize: (str) => {
         if (!str) return '';
         let s = str.toLowerCase();
-        s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Flatten accents
-        s = s.replace(/\bsaint\b/g, 'st').replace(/\bsainte\b/g, 'ste'); // Standardize prefixes
-        s = s.replace(/-/g, ' ');   // Dashes to spaces
-        s = s.replace(/['.]/g, ''); // Strip punctuation
+        s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); 
+        s = s.replace(/\bsaint\b/g, 'st').replace(/\bsainte\b/g, 'ste'); 
+        s = s.replace(/-/g, ' ');   
+        s = s.replace(/['.]/g, ''); 
         return s.replace(/\s+/g, ' ').trim();
     },
 
-    /**
-     * Calculates a match score (0-100).
-     * @param {Object} place - The data object
-     * @param {String} flatQuery - The normalized user input
-     * @param {String} rawQuery - The raw user input (lowercased)
-     */
     getScore: (place, flatQuery, rawQuery) => {
         const normName = place._searchKey;
         const rawName = place.name.toLowerCase();
-
-        // Tier 1: User typed exact characters (Highest Priority)
-        // e.g. User typed "St-A" -> matches "St-André" better than "St. André"
         if (rawName.startsWith(rawQuery)) return 100;
         if (rawName.includes(rawQuery)) return 80;
-
-        // Tier 2: Normalized matches (Fallback)
-        // e.g. User typed "st andre" -> matches "St-André"
         if (normName.startsWith(flatQuery)) return 60;
         if (normName.includes(flatQuery)) return 40;
-
         return 0;
     }
 };
 
 const DataUtils = {
     getCat: (p) => {
-        if (String(p.isFirstNation) === "true") return 'fn';
+        // Exclusive Category Logic for Layering
+        if (p.Indigenous === true || String(p.Indigenous) === "true") return 'indig';
         if (p.microListed === true) return 'micro';
         if (p.shortListed === true) return 'short';
         return 'full';
@@ -70,7 +55,7 @@ const DataUtils = {
 
     getStatusText: (cat) => {
         const labels = {
-            fn: "First Nation, included in <b><u>all lists</u></b>",
+            indig: "Indigenous, included in <b><u>all lists</u></b>",
             micro: "Included in <b><u>all lists</u></b>",
             short: "Included in <b><u>short</u></b> and <b><u>full lists</u></b>",
             full: "Included in <b><u>full-list</u></b> only"
@@ -79,16 +64,19 @@ const DataUtils = {
     },
     
     plot: () => {
+        // Reset stats counts
+        STATE.stats = { indig: 0, micro: 0, short: 0, full: 0 };
+
         STATE.data.forEach(place => {
             if (!place.latitude) return;
             
             const cat = DataUtils.getCat(place);
-            STATE.stats[cat]++;
+            STATE.stats[cat]++; // Increment exclusive category count
+            
+            // Add to Map Layer
             STATE.lookup.set(`${place.name}|${place.province}`, place);
-
             const cfg = CONFIG.categories[cat];
             
-            // Create Marker
             const marker = L.circleMarker([place.latitude, place.longitude], {
                 radius: cfg.radius, fillColor: cfg.color, 
                 color: "#fff", weight: 1.5, fillOpacity: 0.9,
@@ -98,11 +86,19 @@ const DataUtils = {
             STATE.layers[cat].addLayer(marker);
         });
         
-        // Update Legend Counts
-        Object.keys(STATE.stats).forEach(k => {
-            const el = $(`count-${k}`);
-            if(el) el.textContent = STATE.stats[k].toLocaleString();
-        });
+        // --- Calculate Cumulative Counts for Legend ---
+        const countIndig = STATE.stats.indig;
+        const countMicro = STATE.stats.indig + STATE.stats.micro;
+        const countShort = STATE.stats.indig + STATE.stats.micro + STATE.stats.short;
+        const countFull  = STATE.stats.indig + STATE.stats.micro + STATE.stats.short + STATE.stats.full; // Total
+
+        // Update Legend DOM
+        const setTxt = (id, num) => { const el = $(id); if(el) el.textContent = num.toLocaleString(); };
+        
+        setTxt('count-indig', countIndig);
+        setTxt('count-micro', countMicro);
+        setTxt('count-short', countShort);
+        setTxt('count-full', countFull);
     },
 
     getPopupContent: (p, cat) => {
@@ -142,17 +138,28 @@ const UIUtils = {
             timer = setTimeout(() => {
                 const rawVal = e.target.value;
                 drop.innerHTML = ''; drop.style.display = 'none';
-                
                 if (rawVal.length < 2) return;
 
                 const rawQuery = rawVal.toLowerCase();
                 const flatQuery = SearchUtils.normalize(rawVal);
 
-                // Filter -> Score -> Sort -> Slice -> Map
                 const hits = STATE.data
                     .filter(p => p._searchKey.includes(flatQuery)) 
                     .map(p => ({ p, score: SearchUtils.getScore(p, flatQuery, rawQuery) }))
-                    .sort((a, b) => b.score - a.score) 
+                    .sort((a, b) => {
+                        // 1. Sort by Relevance Score
+                        if (b.score !== a.score) return b.score - a.score;
+                        
+                        // 2. Sort by Hierarchy (Indig > Micro > Short > Full)
+                        // Note: DataUtils.getCat returns 'indig', 'micro', 'short', 'full'
+                        const rank = { 'indig': 4, 'micro': 3, 'short': 2, 'full': 1 };
+                        const catA = DataUtils.getCat(a.p);
+                        const catB = DataUtils.getCat(b.p);
+                        if (rank[catA] !== rank[catB]) return rank[catB] - rank[catA];
+
+                        // 3. Sort Alphabetically
+                        return a.p.name.localeCompare(b.p.name);
+                    }) 
                     .slice(0, 50)
                     .map(item => item.p);
 
@@ -161,34 +168,32 @@ const UIUtils = {
                 drop.style.display = 'block';
                 drop.innerHTML = hits.map(p => {
                     const cat = DataUtils.getCat(p);
-                    const key = `${p.name}|${p.province}`;
-                    return `<div class="suggestion-item" data-key="${key}" data-cat="${cat}">
+                    // Use runtime ID (_id) for robust collision handling
+                    return `<div class="suggestion-item" data-id="${p._id}" data-cat="${cat}">
                         <span class="search-dot bg-${cat}"></span>
                         <div><strong>${p.name}</strong>, <span style="color:#666">${p.province}</span></div>
                     </div>`;
                 }).join('');
-            }, 150); // Debounce
+            }, 150);
         });
 
         drop.addEventListener('click', e => {
             const item = e.target.closest('.suggestion-item');
             if (!item) return;
             
-            const place = STATE.lookup.get(item.dataset.key);
+            const place = STATE.data[item.dataset.id];
             const cat = item.dataset.cat;
+            
             input.value = place.name;
             drop.style.display = 'none';
             
-            // Ensure layer is visible
             if (!STATE.map.hasLayer(STATE.layers[cat])) {
                 STATE.map.addLayer(STATE.layers[cat]);
                 $(`legend-${cat}`).classList.remove('disabled');
             }
-            // Zoom to location (MarkerCluster handles unspiderfying if needed)
             STATE.map.setView([place.latitude, place.longitude], 16); 
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', e => {
             if (!input.contains(e.target) && !drop.contains(e.target)) drop.style.display = 'none';
         });
@@ -213,7 +218,7 @@ const UIUtils = {
             if(el) {
                 el.addEventListener('click', function() {
                     const hint = $('legend-hint');
-                    if(hint) hint.remove(); // Remove hint on first interaction
+                    if(hint) hint.remove(); 
                     
                     if (STATE.map.hasLayer(STATE.layers[cat])) {
                         STATE.map.removeLayer(STATE.layers[cat]);
@@ -232,8 +237,6 @@ const UIUtils = {
         if (header) {
             header.addEventListener('click', () => $('generatorMenu').classList.toggle('expanded'));
         }
-        
-        // Setup generator buttons if the Utils exist
         if (typeof GeneratorUtils !== 'undefined') {
             ['places-full', 'places-short', 'places-micro', 'names-full', 'names-short', 'names-micro'].forEach(type => {
                 const btn = $(`btn-${type}`);

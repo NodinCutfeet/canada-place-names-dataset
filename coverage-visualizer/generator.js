@@ -6,7 +6,11 @@ const GeneratorUtils = {
     export: (type, masterData) => {
         let data, filename;
         const clean = (p) => ({
-            name: p.name, province: p.province, latitude: p.latitude, longitude: p.longitude, isFirstNation: p.isFirstNation
+            name: p.name, 
+            province: p.province, 
+            latitude: p.latitude, 
+            longitude: p.longitude, 
+            indigenous: p.Indigenous // Export updated key
         });
 
         const groupByName = (list) => {
