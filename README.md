@@ -70,6 +70,25 @@ And fundamentally:
 
 Canada is 100 percent stolen Indigenous land, from coast to coast to coast. Taken through centuries of violence, forced child removal and abuse, manmade famine and broken treaties by nations that invested heavily in the technologies and logistics of war. These were imposed on Nations whose cultures prioritized stewardship of people, land, and water. Over thirteen thousand years of stewardship undone in two centuries. Including First Nations at every level of this dataset is the absolute minimum, and costs only a few extra kilobytes.
 
+# Coverage Visualizer
+
+This dataset includes an interactive tool called the **Coverage Visualizer**, built with Leaflet JS and OpenStreetMap tile layers. It provides a satellite and map based interface for exploring the data in detail.
+
+The Coverage Visualizer allows you to:
+
+- view every community as a point on the map  
+- toggle between categories such as First Nations, shortlist matches, microlist matches, and excluded points  
+- search for any community in the dataset  
+- zoom in to inspect the exact coordinates used  
+- inspect the nearest neighbor distances used for deduplication  
+- regenerate all derived JSON files from a single master file  
+
+The tool reads from **data.js**, which acts as the source of truth for the entire project. I strongly recommend making edits or additions to **data.js**, because the four derived JSON files can be quickly regenerated from it. This avoids needing to hand edit multiple files and keeps the dataset clean and reproducible.
+
+### Screenshot
+
+![Coverage Visualizer Screenshot](coverage-visualizer-screenshot.png)
+
 # Limitations and Important Notes
 
 Many small Quebec towns are missing due to difficulties separating their names from nearby communities and natural features. If you choose to restore these, I welcome contributions and would appreciate a pull request, but this is optional and not required.
