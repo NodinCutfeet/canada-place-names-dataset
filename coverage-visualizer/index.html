@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Coverage Visualizer</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Center Crosshair -->
+    <div class="crosshair"></div>
+
+    <!-- TOP UI: Coordinates, Search, Legend, Layers -->
+    <div class="ui-container top-center">
+        
+        <!-- Coordinates & Zoom -->
+        <div class="ui-card coords-card">
+            <span class="coord-label">LAT</span> <span id="map-lat">00.0000</span>
+            <span class="divider">|</span>
+            <span class="coord-label">LNG</span> <span id="map-lng">00.0000</span>
+            <span class="divider">|</span>
+            <span class="coord-label">Z</span> <span id="map-zoom">0</span>
+        </div>
+
+        <!-- Search Bar & Legend -->
+        <div class="ui-card center-card">
+            <div class="search-wrapper">
+                <div class="search-input-container">
+                    <span class="emoji-icon search-emoji">🔍</span>
+                    <input type="search" id="searchInput" placeholder="Search places..." autocomplete="off">
+                </div>
+                <div id="searchSuggestions" class="suggestions-dropdown"></div>
+            </div>
+
+            <div class="vertical-divider"></div>
+
+            <div class="legend-wrapper">
+                <div id="legend-hint" class="legend-hint">Click to show/hide</div>
+                
+                <!-- Legend items generated dynamically could be an improvement, but static is fine for now -->
+                <div class="legend-item" id="legend-fn">
+                    <span class="shape-indicator bg-fn"></span>
+                    <span>First Nation (<span id="count-fn">0</span>)</span>
+                </div>
+                <div class="legend-item" id="legend-micro">
+                    <span class="shape-indicator bg-micro"></span>
+                    <span>MicroList (<span id="count-micro">0</span>)</span>
+                </div>
+                <div class="legend-item" id="legend-short">
+                    <span class="shape-indicator bg-short"></span>
+                    <span>ShortList (<span id="count-short">0</span>)</span>
+                </div>
+                <div class="legend-item" id="legend-full">
+                    <span class="shape-indicator bg-full"></span>
+                    <span>FullList (<span id="count-full">0</span>)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layer Switcher -->
+        <div class="ui-card layer-card" id="layerBtn">
+            <span id="currentLayerName">Satellite</span>
+            <div class="css-chevron down"></div>
+            
+            <div class="layer-dropdown" id="layerMenu">
+                <div class="layer-option active" data-layer="satellite">Satellite Hybrid</div>
+                <div class="layer-option" data-layer="osm">Street Map</div>
+                <div class="layer-option" data-layer="topo">Topographic</div>
+                <div class="layer-option" data-layer="light">Clean Light</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM CENTER: Generator Menu -->
+    <div class="bottom-center-menu" id="generatorMenu">
+        <div class="menu-header" id="genHeader">
+            <span class="header-title">💾 Generate JSON</span>
+            <div class="css-chevron up" id="genChevron"></div>
+        </div>
+
+        <div class="menu-content" id="genContent">
+            <div class="gen-cols">
+                <span>Places</span>
+                <span>Names</span>
+            </div>
+
+            <div class="gen-grid">
+                <button id="btn-places-full" class="btn-gen btn-full">Full List</button>
+                <button id="btn-names-full" class="btn-gen btn-full">Full List</button>
+                
+                <button id="btn-places-short" class="btn-gen btn-short">Short List</button>
+                <button id="btn-names-short" class="btn-gen btn-short">Short List</button>
+
+                <button id="btn-places-micro" class="btn-gen btn-micro">Micro List</button>
+                <button id="btn-names-micro" class="btn-gen btn-micro">Micro List</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- SCRIPTS: Order matters -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    
+    <script src="data.js"></script>
+    <script src="config.js"></script>    <!-- NEW: Constants & State -->
+    <script src="generator.js"></script> <!-- Exports data -->
+    <script src="map.js"></script>       <!-- Map Logic -->
+    <script src="logic.js"></script>     <!-- App Logic -->
+</body>
+</html>
